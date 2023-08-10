@@ -72,6 +72,10 @@ h2 {
   color: #f4f5f7;
 }
 
+.button--delete:hover {
+  background-color: #bf2222;
+}
+
 .sidebar ul {
   list-style: none;
   display: flex;
