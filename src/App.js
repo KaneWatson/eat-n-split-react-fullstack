@@ -164,13 +164,9 @@ function AddForm({ name, onSetName, image, onSetImage, onAddFriend }) {
       <input type="text" value={name} onChange={e => onSetName(e.target.value)} />
       <label>📸 Image image</label>
       <input type="text" value={image} onChange={e => onSetImage(e.target.value)} />
-      <Button>Add</Button>
+      <button className="button">Add</button>
     </form>
   )
-}
-
-function Button({ children }) {
-  return <button className="button">{children}</button>
 }
 
 function SplitForm({ selection, bill, onSetBill, expense, setExpense, payer, setPayer, onHandleSplitBill }) {
