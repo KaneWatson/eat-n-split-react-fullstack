@@ -97,6 +97,7 @@ export default function App() {
   return (
     <>
       <h1>🍔Split'N'Eat🍕</h1>
+      {!friends.length && <h2>Add a friend to split a bill with them!</h2>}
       <div className="app">
         <div className="sidebar">
           <FriendList friends={friends} selection={selection} onHandleSelection={handleSelect} onHandleDelete={handleDelete} onGetFriendList={getFriendList} />
