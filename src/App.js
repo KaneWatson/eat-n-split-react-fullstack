@@ -28,9 +28,6 @@ export default function App() {
   const [name, setName] = useState("")
   const [image, setImage] = useState("https://i.pravatar.cc/48")
   const [friends, setFriends] = useState([])
-  const [bill, setBill] = useState("")
-  const [expense, setExpense] = useState("")
-  const [payer, setPayer] = useState("you")
 
   async function getFriendList() {
     try {
@@ -52,9 +49,9 @@ export default function App() {
   function handleSelect(friend) {
     setSelection(current => (current?.id === friend.id ? null : friend))
     setIsAddOpen(false)
-    setBill("")
-    setExpense("")
-    setPayer("you")
+    // setBill("")
+    // setExpense("")
+    // setPayer("you")
   }
 
   async function handleDelete(friend) {
@@ -64,34 +61,6 @@ export default function App() {
         if (!error) setFriends(friends)
       }
     } catch (error) {}
-  }
-
-  async function handleSplitBill() {
-    if (bill <= 0 || expense <= 0) return
-    try {
-      if (payer === "you") {
-        const { data: updatedItem, error } = await supabase
-          .from("friends-list")
-          .update({ balance: selection.balance + bill - expense })
-          .eq("id", selection.id)
-          .select()
-        if (!error) setFriends(friends => friends.map(friend => (friend.id === updatedItem.id ? updatedItem : friend)))
-      } else {
-        const { data: updatedItem, error } = await supabase
-          .from("friends-list")
-          .update({ balance: selection.balance - expense })
-          .eq("id", selection.id)
-          .select()
-        if (!error) setFriends(friends => friends.map(friend => (friend.id === updatedItem.id ? updatedItem : friend)))
-      }
-
-      setBill("")
-      setExpense("")
-      setPayer("You")
-      setSelection(null)
-    } catch (error) {
-      console.log(error)
-    }
   }
 
   return (
@@ -106,7 +75,7 @@ export default function App() {
             {isAddOpen ? "Close" : "Add friend"}
           </button>
         </div>
-        {selection && <SplitForm onHandleSplitBill={handleSplitBill} selection={selection} bill={bill} onSetBill={setBill} expense={expense} setExpense={setExpense} payer={payer} setPayer={setPayer} />}
+        {selection && <SplitForm key={selection.id} selection={selection} onSetSelection={setSelection} onSetFriends={setFriends} />}
       </div>
     </>
   )
@@ -169,16 +138,48 @@ function AddForm({ name, onSetName, image, onSetImage, onAddFriend }) {
   )
 }
 
-function SplitForm({ selection, bill, onSetBill, expense, setExpense, payer, setPayer, onHandleSplitBill }) {
+function SplitForm({ selection, onSetSelection, onSetFriends }) {
+  const [bill, setBill] = useState("")
+  const [expense, setExpense] = useState("")
+  const [payer, setPayer] = useState("you")
+
+  async function handleSplitBill() {
+    if (bill <= 0 || expense <= 0) return
+    try {
+      if (payer === "you") {
+        const { data: updatedItem, error } = await supabase
+          .from("friends-list")
+          .update({ balance: selection.balance + bill - expense })
+          .eq("id", selection.id)
+          .select()
+        if (!error) onSetFriends(friends => friends.map(friend => (friend.id === updatedItem.id ? updatedItem : friend)))
+      } else {
+        const { data: updatedItem, error } = await supabase
+          .from("friends-list")
+          .update({ balance: selection.balance - expense })
+          .eq("id", selection.id)
+          .select()
+        if (!error) onSetFriends(friends => friends.map(friend => (friend.id === updatedItem.id ? updatedItem : friend)))
+      }
+
+      setBill("")
+      setExpense("")
+      setPayer("You")
+      onSetSelection(null)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   function handleSubmit(e) {
     e.preventDefault()
-    onHandleSplitBill()
+    handleSplitBill()
   }
   return (
     <form className="form-split-bill" onSubmit={e => handleSubmit(e)}>
       <h2>Split a bill with {selection.name}</h2>
       <label>💰 Bill value</label>
-      <input type="number" value={bill} onChange={e => onSetBill(Number(e.target.value))} />
+      <input type="number" value={bill} onChange={e => setBill(Number(e.target.value))} />
       <label>💰 Your expense</label>
       <input type="number" value={expense} onChange={e => setExpense(Number(e.target.value) > bill ? expense : Number(e.target.value))} />
       <label>💰 {selection.name}'s expense</label>
