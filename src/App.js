@@ -82,12 +82,9 @@ export default function App() {
 }
 
 function FriendList({ friends, selection, onHandleSelection, onGetFriendList, onHandleDelete }) {
-  useEffect(
-    function () {
-      onGetFriendList()
-    },
-    [onGetFriendList]
-  )
+  useEffect(function () {
+    onGetFriendList()
+  }, [])
   return (
     <ul>
       {friends.map(friend => (
