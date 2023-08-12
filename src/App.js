@@ -28,11 +28,16 @@ export default function App() {
   const [name, setName] = useState("")
   const [image, setImage] = useState("https://i.pravatar.cc/48")
   const [friends, setFriends] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
 
   async function getFriendList() {
     try {
+      setIsLoading(true)
       let { data: friends, error } = await supabase.from("friends-list").select("*").order("id", { ascending: true })
-      if (!error) setFriends(friends)
+      if (!error) {
+        setFriends(friends)
+        setIsLoading(false)
+      }
     } catch (error) {
       throw new Error(error)
     }
@@ -69,7 +74,7 @@ export default function App() {
       {!friends.length && <h2>Add a friend to split a bill with them!</h2>}
       <div className="app">
         <div className="sidebar">
-          <FriendList friends={friends} selection={selection} onHandleSelection={handleSelect} onHandleDelete={handleDelete} onGetFriendList={getFriendList} />
+          <FriendList friends={friends} selection={selection} onHandleSelection={handleSelect} onHandleDelete={handleDelete} onGetFriendList={getFriendList} isLoading={isLoading} />
           {isAddOpen && <AddForm name={name} onSetName={setName} image={image} onSetImage={setImage} onAddFriend={AddFriend} />}
           <button className="button" onClick={() => setIsAddOpen(!isAddOpen)}>
             {isAddOpen ? "Close" : "Add friend"}
@@ -81,16 +86,22 @@ export default function App() {
   )
 }
 
-function FriendList({ friends, selection, onHandleSelection, onGetFriendList, onHandleDelete }) {
+function FriendList({ friends, selection, onHandleSelection, onGetFriendList, onHandleDelete, isLoading }) {
   useEffect(function () {
     onGetFriendList()
   }, [])
   return (
-    <ul>
-      {friends.map(friend => (
-        <Friend key={friend.id} friend={friend} onHandleSelection={onHandleSelection} selection={selection} onHandleDelete={onHandleDelete} />
-      ))}
-    </ul>
+    <>
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <ul>
+          {friends.map(friend => (
+            <Friend key={friend.id} friend={friend} onHandleSelection={onHandleSelection} selection={selection} onHandleDelete={onHandleDelete} />
+          ))}
+        </ul>
+      )}
+    </>
   )
 }
 
@@ -189,4 +200,8 @@ function SplitForm({ selection, onSetSelection, onSetFriends }) {
       <button className="button">Split bill</button>
     </form>
   )
+}
+
+function Loader() {
+  return <p className="loader">Loading...</p>
 }
