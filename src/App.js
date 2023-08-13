@@ -51,26 +51,24 @@ export default function App() {
       if (window.confirm(`Are you sure you want to delete ${friend.name}?`)) {
         const { error } = await supabase.from("friends-list").delete().eq("id", friend.id)
         if (!error) {
-          setFriends(friends)
+          setFriends(friends => friends.filter(fr => fr.id !== friend.id))
         }
-        getFriendList()
       }
     } catch (error) {
       console.log(error)
     }
   }
 
-  async function getFriendList(initial = false) {
+  async function getFriendList() {
     try {
-      if (initial) setIsLoading(true)
+      setIsLoading(true)
       let { data: friends, error } = await supabase.from("friends-list").select("*").order("id", { ascending: true })
       if (!error) {
         setFriends(friends)
+        setIsLoading(false)
       }
     } catch (error) {
       console.log(error)
-    } finally {
-      if (initial) setIsLoading(false)
     }
   }
 
@@ -90,7 +88,7 @@ export default function App() {
             {isAddOpen ? "Close" : "Add friend"}
           </button>
         </div>
-        {selection && <SplitForm key={selection.id} selection={selection} onSetSelection={setSelection} onSetFriends={setFriends} onGetFriendList={getFriendList} />}
+        {selection && <SplitForm key={selection.id} selection={selection} onSetSelection={setSelection} onSetFriends={setFriends} />}
       </div>
     </>
   )
@@ -153,7 +151,7 @@ function AddForm({ name, onSetName, image, onSetImage, onAddFriend }) {
   )
 }
 
-function SplitForm({ selection, onSetSelection, onSetFriends, onGetFriendList }) {
+function SplitForm({ selection, onSetSelection, onSetFriends }) {
   const [bill, setBill] = useState("")
   const [expense, setExpense] = useState("")
   const [payer, setPayer] = useState("you")
@@ -167,14 +165,14 @@ function SplitForm({ selection, onSetSelection, onSetFriends, onGetFriendList })
           .update({ balance: selection.balance + bill - expense })
           .eq("id", selection.id)
           .select()
-        if (!error) onSetFriends(friends => friends.map(friend => (friend.id === updatedItem.id ? updatedItem : friend)))
+        if (!error) onSetFriends(friends => friends.map(friend => (friend.id === updatedItem[0].id ? updatedItem[0] : friend)))
       } else {
         const { data: updatedItem, error } = await supabase
           .from("friends-list")
           .update({ balance: selection.balance - expense })
           .eq("id", selection.id)
           .select()
-        if (!error) onSetFriends(friends => friends.map(friend => (friend.id === updatedItem.id ? updatedItem : friend)))
+        if (!error) onSetFriends(friends => friends.map(friend => (friend.id === updatedItem[0].id ? updatedItem[0] : friend)))
       }
 
       setBill("")
@@ -183,8 +181,6 @@ function SplitForm({ selection, onSetSelection, onSetFriends, onGetFriendList })
       onSetSelection(null)
     } catch (error) {
       console.log(error)
-    } finally {
-      onGetFriendList()
     }
   }
 
