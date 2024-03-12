@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import supabase from "./supabase"
 
 // const initialFriends = [
@@ -59,22 +59,26 @@ export default function App() {
     }
   }
 
-  async function getFriendList() {
+  const getFriendList = useCallback(async function getFriendList() {
     try {
       setIsLoading(true)
       let { data: friends, error } = await supabase.from("friends-list").select("*").order("id", { ascending: true })
       if (!error) {
         setFriends(friends)
-        setIsLoading(false)
       }
     } catch (error) {
       console.log(error)
+    } finally {
+      setIsLoading(false)
     }
-  }
-
-  useEffect(function () {
-    getFriendList(true)
   }, [])
+
+  useEffect(
+    function () {
+      getFriendList()
+    },
+    [getFriendList]
+  )
 
   return (
     <>
@@ -144,7 +148,7 @@ function AddForm({ name, onSetName, image, onSetImage, onAddFriend }) {
     <form className="form-add-friend" onSubmit={e => handleAddFriend(e)}>
       <label>👯 Friend name</label>
       <input type="text" value={name} onChange={e => onSetName(e.target.value)} />
-      <label>📸 Image image</label>
+      <label>📸 Friend image</label>
       <input type="text" value={image} onChange={e => onSetImage(e.target.value)} />
       <button className="button">Add</button>
     </form>
